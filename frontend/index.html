@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Painpoint.AI - Enhanced with RAG & NLP</title>
+  <link rel="stylesheet" href="styles.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🧠 Painpoint.AI</h1>
+      <p class="subtitle">Intelligent Problem Detection with RAG & Enhanced NLP</p>
+    </header>
+
+    <nav class="nav-tabs">
+      <button class="tab-btn active" onclick="showTab('problems')">📊 Problems</button>
+      <button class="tab-btn" onclick="showTab('rag')">🤖 RAG System</button>
+      <button class="tab-btn" onclick="showTab('summaries')">📝 AI Summaries</button>
+      <button class="tab-btn" onclick="showTab('analytics')">📈 Analytics</button>
+    </nav>
+
+    <!-- Problems Tab (Original) -->
+    <div id="problems-tab" class="tab-content active">
+      <div class="controls">
+        <button onclick="fetchRealData()" class="btn-primary">🔄 Fetch Real Reddit Data</button>
+        <button onclick="searchProblems()" class="btn-secondary">🔍 Search Problems</button>
+        <input type="text" id="search-input" placeholder="Search problems..." style="margin-left: 10px; padding: 8px;">
+      </div>
+      <div id="status" class="status-info"></div>
+      <h2>Latest Problems (Last 24h)</h2>
+      <div id="grouped"></div>
+    </div>
+
+    <!-- RAG System Tab -->
+    <div id="rag-tab" class="tab-content">
+      <h2>🤖 RAG (Retrieval-Augmented Generation) System</h2>
+      <div class="rag-controls">
+        <div class="control-section">
+          <h3>🚀 Pipeline Control</h3>
+          <button onclick="startRAGPipeline()" class="btn-primary large">Start Full RAG Pipeline</button>
+          <button onclick="getRAGStats()" class="btn-secondary">📊 Get RAG Stats</button>
+          <button onclick="startContinuousCollection()" class="btn-warning">🔄 Start Continuous Collection</button>
+        </div>
+        
+        <div class="control-section">
+          <h3>📡 Manual Collection</h3>
+          <button onclick="triggerRedditCollection()" class="btn-secondary">Collect Reddit Data</button>
+          <button onclick="triggerSummarization()" class="btn-secondary">Generate Summaries</button>
+        </div>
+
+        <div class="control-section">
+          <h3>🔍 Text Analysis</h3>
+          <textarea id="analyze-title" placeholder="Enter problem title..." rows="2"></textarea>
+          <textarea id="analyze-description" placeholder="Enter problem description..." rows="4"></textarea>
+          <button onclick="analyzeText()" class="btn-secondary">🧠 Analyze with NLP</button>
+        </div>
+      </div>
+      <div id="rag-results" class="results-container"></div>
+    </div>
+
+    <!-- AI Summaries Tab -->
+    <div id="summaries-tab" class="tab-content">
+      <h2>📝 AI-Generated Problem Summaries</h2>
+      <div class="summary-controls">
+        <select id="severity-filter">
+          <option value="">All Severities</option>
+          <option value="high">High Severity</option>
+          <option value="medium">Medium Severity</option>
+          <option value="low">Low Severity</option>
+        </select>
+        <select id="category-filter">
+          <option value="">All Categories</option>
+          <option value="Hardware">Hardware</option>
+          <option value="Software">Software</option>
+          <option value="Other">Other</option>
+        </select>
+        <button onclick="loadRecentSummaries()" class="btn-primary">🔄 Load Recent Summaries</button>
+      </div>
+      <div id="summaries-container" class="summaries-grid"></div>
+    </div>
+
+    <!-- Analytics Tab -->
+    <div id="analytics-tab" class="tab-content">
+      <h2>📈 System Analytics</h2>
+      <div id="analytics-container">
+        <div class="analytics-grid">
+          <div class="analytics-card">
+            <h3>📊 Collection Stats</h3>
+            <div id="collection-stats"></div>
+          </div>
+          <div class="analytics-card">
+            <h3>🏷️ Category Distribution</h3>
+            <div id="category-distribution"></div>
+          </div>
+          <div class="analytics-card">
+            <h3>📡 Source Analysis</h3>
+            <div id="source-analysis"></div>
+          </div>
+          <div class="analytics-card">
+            <h3>🤖 RAG Performance</h3>
+            <div id="rag-performance"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
