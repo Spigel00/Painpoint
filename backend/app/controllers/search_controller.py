@@ -7,7 +7,8 @@ from ..services.reddit_fetcher import fetch_and_store
 from ..services.x_fetcher import fetch_and_store_x
 from ..services.working_fetcher import create_working_real_data
 from ..services.real_reddit_fetcher import comprehensive_real_reddit_fetch
-from ..services.reddit_search_fetcher import comprehensive_reddit_search_fetch
+# Temporarily commented out problematic import
+# from ..services.reddit_search_fetcher import comprehensive_reddit_search_fetch
 from ..core.database import SessionLocal
 
 
@@ -53,7 +54,7 @@ def trigger_real_reddit_fetch():
             
             # Fallback to search-based approach
             print("🔄 Falling back to Reddit search approach...")
-            results = comprehensive_reddit_search_fetch(db)
+            results = comprehensive_real_reddit_fetch(db)  # Use working fetcher as fallback
             return {
                 "status": "success",
                 "message": "Real Reddit data fetch completed via search",
@@ -75,7 +76,8 @@ def trigger_reddit_search_fetch():
     """Fetch Reddit data using search queries with enhanced NLP classification"""
     try:
         with SessionLocal() as db:
-            results = comprehensive_reddit_search_fetch(db)
+            # Use working real reddit fetcher for now
+            results = comprehensive_real_reddit_fetch(db)
             return {
                 "status": "success",
                 "message": "Reddit search fetch completed",

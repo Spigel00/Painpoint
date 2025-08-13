@@ -1,27 +1,27 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .core import config
-from .controllers.problems_controller import router as problems_router
-from .controllers.search_controller import router as search_router
-from .controllers.auth_controller import router as auth_router
-from .controllers.solutions_controller import router as solutions_router
-from .controllers.enhanced_rag_controller import router as enhanced_rag_router
-from .controllers.enhanced_problems_controller import router as enhanced_problems_router
+from app.core import config
+from app.controllers.problems_controller import router as problems_router
+from app.controllers.search_controller import router as search_router
+from app.controllers.auth_controller import router as auth_router
+from app.controllers.solutions_controller import router as solutions_router
+from app.controllers.enhanced_rag_controller import router as enhanced_rag_router
+from app.controllers.enhanced_problems_controller import router as enhanced_problems_router
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from datetime import datetime
 from sqlalchemy import text
-from .core.database import engine, SessionLocal
-from .models.db_models import Base, FetchedProblem
-from .services.reddit_fetcher import fetch_and_store, grouped_problems
-from .services.x_fetcher import fetch_and_store_x
-from .services.working_fetcher import create_working_real_data
-from .services.enhanced_rag_service import start_rag_pipeline
-from .utils.reddit_search import _init_reddit
+from app.core.database import engine, SessionLocal
+from app.models.db_models import Base, FetchedProblem
+from app.services.reddit_fetcher import fetch_and_store, grouped_problems
+from app.services.x_fetcher import fetch_and_store_x
+from app.services.working_fetcher import create_working_real_data
+from app.services.enhanced_rag_service import start_rag_pipeline
+from app.utils.reddit_search import _init_reddit
 from fastapi import Depends
 from sqlalchemy.orm import Session
-from .core.database import get_db
+from app.core.database import get_db
 import asyncio
 import logging
 
@@ -165,9 +165,10 @@ def on_startup():
             # best-effort migration, do not block startup
             pass
         DB_READY = True
-        print("✓ Reddit API connection successful")
-        print("🚀 Creating REALISTIC data samples at", datetime.now())
-        print("This demonstrates how the NLP classification works with real-world examples")
+        print("✅ Pain Point AI Application Started Successfully!")
+        print("� Frontend available at: http://localhost:8000")
+        print("📖 API Documentation: http://localhost:8000/docs")
+        print("📊 API Status: http://localhost:8000/api/status")
         
         # Note: Enhanced RAG Pipeline can be started via API endpoint /api/rag/start
         logger.info("🤖 Enhanced RAG Pipeline ready - use /api/rag/start to begin")
@@ -175,29 +176,9 @@ def on_startup():
     except Exception:
         DB_READY = False
         print("❌ Database connection failed")
-    # Start scheduled job every 15 minutes only if DB is ready and Reddit creds are valid
-    try:
-        # Lazy import to avoid issues when dependency missing at analysis time
-        from apscheduler.schedulers.background import BackgroundScheduler  # type: ignore
-        # Validate Reddit credentials up front; if invalid, skip scheduling
-        try:
-            _ = _init_reddit()
-        except Exception:
-            return
-        if scheduler is None:
-            scheduler = BackgroundScheduler()
-        if DB_READY and not scheduler.get_job("reddit_fetch"):
-            scheduler.add_job(
-                func=lambda: _run_fetch_job(),
-                trigger="interval",
-                minutes=15,
-                id="reddit_fetch",
-                replace_existing=True,
-                next_run_time=datetime.now(),  # run once ASAP without blocking startup
-            )
-            scheduler.start()
-    except Exception:
-        pass
+    
+    # Skip automatic data creation and background tasks to keep server stable
+    print("🚀 Server ready for requests - data can be manually fetched via API")
 
 
 def _run_fetch_job():
