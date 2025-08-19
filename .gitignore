@@ -24,6 +24,7 @@ MANIFEST
 
 # Virtual Environment
 venv/
+.venv/
 env/
 ENV/
 env.bak/
@@ -35,6 +36,15 @@ venv.bak/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Vector Database
+clean_app/vector_db/
+vector_db/
+
+# Cache Files
+processed_reddit_cache.json
+clean_app/processed_reddit_cache.json
+clean_app/preprocessed_data_*.json
 
 # Database
 *.db
@@ -69,18 +79,11 @@ pids/
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
-coverage/
-*.lcov
-
-# node_modules (if using Node.js for frontend)
-node_modules/
-
-# Docker
-.dockerignore
-Dockerfile
-docker-compose.yml
-
 # Temporary files
 *.tmp
 *.temp
+
+# Development files
+test_*.py
+*_test.py
+debug_*.py
