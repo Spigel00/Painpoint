@@ -241,6 +241,12 @@
                     🔍 Search
                 </button>
             </div>
+            <div class="filter-options" style="text-align: center; margin: 10px 0;">
+                <label style="color: white; font-size: 14px;">
+                    <input type="checkbox" id="techOnlyCheckbox" checked style="margin-right: 5px;">
+                    Show only tech-related subreddits (r/webdev, r/programming, r/sysadmin, etc.)
+                </label>
+            </div>
             <div class="search-info">
                 💡 Try: "React build error", "Docker crashes", "PostgreSQL timeout", "Python performance"
             </div>
@@ -309,6 +315,7 @@
         async function searchProblems() {
             const query = document.getElementById('searchInput').value.trim();
             const category = document.getElementById('categorySelect').value;
+            const techOnly = document.getElementById('techOnlyCheckbox').checked;
             
             if (!query) {
                 alert('Please enter a search query');
@@ -333,7 +340,8 @@
             try {
                 const params = new URLSearchParams({
                     query: query,
-                    limit: 20
+                    limit: 100,  // Increased from 20 to 100 for better search results
+                    tech_only: techOnly
                 });
                 
                 if (category && category !== 'All') {
@@ -370,15 +378,16 @@
             const fetchBtn = document.getElementById('fetchBtn');
             const statusDiv = document.getElementById('status');
             const problemsDiv = document.getElementById('problems');
+            const techOnly = document.getElementById('techOnlyCheckbox').checked;
             
             // Update UI for loading
             fetchBtn.disabled = true;
             fetchBtn.textContent = '📦 Loading...';
-            statusDiv.innerHTML = '📦 Loading sample tech problems...';
+            statusDiv.innerHTML = `📦 Loading tech problems${techOnly ? ' (tech subreddits only)' : ''}...`;
             problemsDiv.innerHTML = '<div class="loading">📦 Loading from vector store...</div>';
             
             try {
-                const response = await fetch(`${API_BASE}/live_problems?limit=30`);
+                const response = await fetch(`${API_BASE}/live_problems?limit=200&tech_only=${techOnly}`);  // Request 200 problems instead of 30
                 const data = await response.json();
                 
                 if (data.status === 'success') {

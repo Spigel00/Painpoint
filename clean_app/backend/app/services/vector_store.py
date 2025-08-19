@@ -21,8 +21,10 @@ class VectorStore:
         self.collection_name = collection_name
         
         # Initialize ChromaDB with persistent storage
+        # Use absolute path to ensure consistency across different working directories
+        db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../vector_db"))
         self.client = chromadb.PersistentClient(
-            path="./vector_db",
+            path=db_path,
             settings=Settings(
                 anonymized_telemetry=False,
                 allow_reset=True
@@ -180,6 +182,82 @@ class VectorStore:
             print(f"❌ Error getting categories: {e}")
             return ["General Tech"]
     
+    def get_all_documents(self, limit: int = 1000, category_filter: Optional[str] = None, tech_only: bool = False) -> List[Dict[str, Any]]:
+        """Get all documents from the collection"""
+        try:
+            print(f"📦 Getting all documents (limit: {limit}, category: {category_filter}, tech_only: {tech_only})")
+            
+            # Tech-related subreddits list
+            tech_subreddits = {
+                'learnprogramming', 'webdev', 'sysadmin', 'techsupport', 'softwaregore',
+                'UXDesign', 'userexperience', 'SaaS', 'SideProject', 'startups', 
+                'indianstartups', 'Entrepreneur', 'Notion', 'ObsidianMD', 'trello',
+                'Futurology', 'productivity'
+            }
+            
+            # Get documents from ChromaDB
+            where_filter = {}
+            if category_filter and category_filter != "All":
+                where_filter["category"] = category_filter
+            
+            if tech_only:
+                # Filter for tech subreddits
+                if where_filter:
+                    # Can't use complex AND/OR filters easily in ChromaDB, so we'll filter after retrieval
+                    results = self.collection.get(
+                        limit=limit,
+                        where=where_filter,
+                        include=["metadatas", "documents"]
+                    )
+                else:
+                    results = self.collection.get(
+                        limit=limit,
+                        include=["metadatas", "documents"]
+                    )
+            else:
+                if where_filter:
+                    results = self.collection.get(
+                        limit=limit,
+                        where=where_filter,
+                        include=["metadatas", "documents"]
+                    )
+                else:
+                    results = self.collection.get(
+                        limit=limit,
+                        include=["metadatas", "documents"]
+                    )
+            
+            documents = []
+            if results['metadatas'] and results['documents']:
+                for i, metadata in enumerate(results['metadatas']):
+                    subreddit = metadata.get('subreddit', '').lower()
+                    
+                    # Apply tech filter if requested
+                    if tech_only and subreddit not in tech_subreddits:
+                        continue
+                    
+                    doc = {
+                        "id": results['ids'][i] if 'ids' in results else f"doc_{i}",
+                        "title": metadata.get('title', 'Untitled'),
+                        "ai_problem_statement": results['documents'][i],
+                        "category": metadata.get('category', 'General Tech'),
+                        "subreddit": metadata.get('subreddit', ''),
+                        "url": metadata.get('url', ''),
+                        "score": metadata.get('score', 0),
+                        "description": metadata.get('description', ''),
+                        "created_utc": metadata.get('created_utc', 0),
+                        "processed_at": metadata.get('processed_at', ''),
+                        "similarity_score": 1.0  # All docs are 100% relevant when browsing all
+                    }
+                    documents.append(doc)
+            
+            print(f"✅ Retrieved {len(documents)} documents" + (" (tech-filtered)" if tech_only else ""))
+            return documents
+            
+        except Exception as e:
+            print(f"❌ Error getting all documents: {e}")
+            return []
+
     def get_stats(self) -> Dict[str, Any]:
         """Get vector store statistics"""
         try:

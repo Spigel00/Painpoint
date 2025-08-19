@@ -45,18 +45,29 @@ def read_root():
 def get_live_problems(
     query: Optional[str] = Query(None, description="Search query for semantic search"),
     category: Optional[str] = Query(None, description="Filter by category"),
-    limit: Optional[int] = Query(20, description="Number of results to return")
+    limit: Optional[int] = Query(20, description="Number of results to return"),
+    tech_only: Optional[bool] = Query(True, description="Show only tech-related subreddits")
 ):
     """Get tech problems using RAG semantic search"""
     try:
         if query:
             # Semantic search with query
-            print(f"🔍 RAG Search: '{query}' (category: {category}, limit: {limit})")
+            print(f"🔍 RAG Search: '{query}' (category: {category}, limit: {limit}, tech_only: {tech_only})")
             results = vector_store.search_similar(
                 query=query,
                 n_results=limit,
                 category_filter=category
             )
+            
+            # Apply tech filter if requested
+            if tech_only:
+                tech_subreddits = {
+                    'learnprogramming', 'webdev', 'sysadmin', 'techsupport', 'softwaregore',
+                    'uxdesign', 'userexperience', 'saas', 'sideproject', 'startups', 
+                    'indianstartups', 'entrepreneur', 'notion', 'obsidianmd', 'trello',
+                    'futurology', 'productivity'
+                }
+                results = [r for r in results if r.get('subreddit', '').lower() in tech_subreddits]
             
             # Organize by category
             categories = {}
@@ -71,55 +82,48 @@ def get_live_problems(
                 "search_query": query,
                 "data": categories,
                 "total_found": len(results),
-                "message": f"Found {len(results)} problems matching '{query}'",
-                "search_type": "semantic"
+                "message": f"Found {len(results)} problems matching '{query}'" + (" (tech subreddits only)" if tech_only else ""),
+                "search_type": "semantic",
+                "tech_only": tech_only
             }
         else:
-            # Get random sample by category
-            print(f"📦 Getting sample problems (category: {category}, limit: {limit})")
+            # Get all documents or browse by category
+            print(f"📦 Getting all problems (category: {category}, limit: {limit}, tech_only: {tech_only})")
             
-            # Use a generic query to get diverse results
-            sample_queries = [
-                "software bug error crash",
-                "install setup configuration",
-                "performance slow optimization", 
-                "database connection issue",
-                "web development problem"
-            ]
+            # Get all documents from vector store
+            all_results = vector_store.get_all_documents(
+                limit=limit if limit <= 100 else 1000,  # Safety limit
+                category_filter=category,
+                tech_only=tech_only
+            )
             
-            all_results = []
-            for sq in sample_queries:
-                results = vector_store.search_similar(
-                    query=sq,
-                    n_results=limit//len(sample_queries) + 2,
-                    category_filter=category
-                )
-                all_results.extend(results)
-            
-            # Remove duplicates by ID and limit
-            seen_ids = set()
-            unique_results = []
-            for result in all_results:
-                if result['id'] not in seen_ids:
-                    seen_ids.add(result['id'])
-                    unique_results.append(result)
-                    if len(unique_results) >= limit:
-                        break
+            # If no specific limit, show more results
+            if limit == 20:  # Default limit
+                limit = min(100, len(all_results))  # Show up to 100 by default
+                all_results = all_results[:limit]
             
             # Organize by category
             categories = {}
-            for result in unique_results:
+            for result in all_results:
                 cat = result.get('category', 'General Tech')
                 if cat not in categories:
                     categories[cat] = []
                 categories[cat].append(result)
             
+            total_found = len(all_results)
+            message = f"Showing {total_found} problems"
+            if category and category != "All":
+                message += f" in {category}"
+            if tech_only:
+                message += " (tech subreddits only)"
+            
             return {
                 "status": "success",
                 "data": categories,
-                "total_found": len(unique_results),
-                "message": f"Sample of {len(unique_results)} tech problems",
-                "search_type": "sample"
+                "total_found": total_found,
+                "message": message,
+                "search_type": "browse_all",
+                "tech_only": tech_only
             }
             
     except Exception as e:
