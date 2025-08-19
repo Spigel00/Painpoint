@@ -20,7 +20,7 @@ sys.path.append(os.path.join(parent_dir, "backend"))
 
 from backend.app.utils.reddit_search import _init_reddit
 from backend.app.config.subreddits import PAINPOINT_SUBREDDITS
-from backend.app.services.nlp_processor import process_post
+from backend.app.services.nlp_processor import generate_problem_statement
 from backend.app.services.vector_store import VectorStore
 
 class RAGPreprocessor:
@@ -127,9 +127,9 @@ class RAGPreprocessor:
             if not self.is_valid_problem_post(title, body):
                 return None
             
-            # Generate AI problem statement
+            # Generate enhanced AI problem statement using new function
             combined_text = f"{title}. {body}".strip()
-            ai_statement = process_post(combined_text[:800])  # Truncate for processing
+            ai_statement = generate_problem_statement(combined_text[:800])  # Use enhanced NLP function
             
             # Categorize
             category = self.categorize_post(title, body)
